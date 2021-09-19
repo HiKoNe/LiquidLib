@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# SYSLIB0011: Тип или член устарел
+dotnet_diagnostic.SYSLIB0011.severity = none
