@@ -1,1 +1,7 @@
-HiLiquidLib is a pretty cool mod, it does...this. Modify this file with a description of your mod.
+[c/007F7F:HiLiquidLib for tModLoader 1.4]
+
+Did you want to create your own liquid?
+This mod will let you do it!
+
+All errors and recommendations in [c/00CC00:Git].
+Check [c/FF7F00:Wiki] on [c/00CC00:Git] for more information.
