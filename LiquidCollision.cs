@@ -1,59 +1,27 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Terraria;
-using Terraria.Audio;
-using Terraria.ID;
+﻿using Terraria.Audio;
 
 namespace LiquidLib
 {
-    internal class LiquidCollisions
-    {
-        List<LiquidCollision> liquidCollisions = new()
-        {
-            new LiquidCollision(0, 1) { TileType = TileID.Obsidian, Sound = SoundID.LiquidsWaterLava },
-            new LiquidCollision(0, 2) { TileType = TileID.HoneyBlock, Sound = SoundID.LiquidsHoneyWater },
-            new LiquidCollision(1, 2) { TileType = TileID.CrispyHoneyBlock, Sound = SoundID.LiquidsHoneyLava },
-        };
-
-        public LiquidCollision this[int lqiuid1, int lqiuid2]
-        {
-            get
-            {
-                LiquidCollision lc = null;
-                if (liquidCollisions.Any(l =>
-                {
-                    bool @is = l.Is(lqiuid1, lqiuid2, out var liquidCollision);
-                    lc = liquidCollision;
-                    return @is;
-                }))
-                    return lc;
-
-                lc = new LiquidCollision(lqiuid1, lqiuid2);
-                liquidCollisions.Add(lc);
-                return lc;
-            }
-        }
-
-        public bool Contains(int lqiuid1, int lqiuid2)
-        {
-            return liquidCollisions.Any(l =>
-            {
-                return l.Is(lqiuid1, lqiuid2, out _);
-            });
-        }
-
-        public void Unload() => liquidCollisions.Clear();
-    }
-
     public class LiquidCollision
     {
-        int lqiuid1;
-        int lqiuid2;
-        int tileType;
-        LegacySoundStyle sound;
+        internal int lqiuid1;
+        internal int lqiuid2;
+        internal int tileType;
+        internal LegacySoundStyle sound;
 
-        public int TileType { get => this.tileType; set => this.tileType = value; }
-        public LegacySoundStyle Sound { get => this.sound; set => this.sound = value; }
+        /// <summary> Set Tile id for collision liquids. </summary>
+        public LiquidCollision SetTileType(int tileType)
+        {
+            this.tileType = tileType;
+            return this;
+        }
+
+        /// <summary> Set Sound for collision liquids. </summary>
+        public LiquidCollision SetSound(LegacySoundStyle sound)
+        {
+            this.sound = sound;
+            return this;
+        }
 
         internal LiquidCollision(int lqiuid1, int lqiuid2)
         {

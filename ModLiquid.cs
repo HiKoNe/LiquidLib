@@ -2,6 +2,7 @@
 using ReLogic.Content;
 using System;
 using Terraria;
+using Terraria.Audio;
 using Terraria.ModLoader;
 
 namespace LiquidLib
@@ -37,30 +38,29 @@ namespace LiquidLib
         /// <summary> The sprite sheet that this type of waterfall liquid uses. </summary>
         public abstract string WaterfallTexture { get; }
 
-        /// <summary> [Default: 0.0f] The opacity of this liquid. Value: 0f - 1f. </summary>
-        public float Opacity { get; set; } = 0.0f;
-
         /// <summary> [Default: 5] The waterfall length of this liquid. Value: 0 - 10. </summary>
         public int WaterfallLength { get; set; } = 5;
 
-        /// <summary> [Default: -1] <br/> The dust count of this liquid.  </summary>
+        /// <summary> [Default: 0.0f] The opacity of this liquid. Value: 0f - 1f. </summary>
+        public float Opacity { get; set; } = 0.0f;
+
+        /// <summary> [Default: 0] The wave mask strength of this liquid. </summary>
+        public byte WaveMaskStrength { get; set; } = 0;
+
+        /// <summary> [Default: 0] The viscosity mask of this liquid. </summary>
+        public byte ViscosityMask { get; set; } = 0;
+
+        /// <summary> [Default: -1] <br/> The dust count of this liquid. </summary>
         public int DustCount { get; set; } = -1;
 
-        /// <summary> [Default: -1] <br/> The dust type of this liquid.  </summary>
+        /// <summary> [Default: -1] <br/> The dust type of this liquid. </summary>
         public int DustType { get; set; } = -1;
 
-        /// <summary> [Default: -1] <br/> The sound of this liquid.  </summary>
-        public int SoundType { get; set; } = -1;
+        /// <summary> [Default: null] <br/> The sound of this liquid. </summary>
+        public LegacySoundStyle Sound { get; set; } = null;
 
-        /// <summary> [Default: 0] <br/> The sound style of this liquid.  </summary>
-        public int SoundStyle { get; set; } = 0;
-
-        /// <summary> [Default: 0] <br/> The delay of this liquid.  </summary>
+        /// <summary> [Default: 0] <br/> The delay of this liquid. </summary>
         public int Delay { get; set; } = 0;
-
-        /// <summary>  </summary>
-        public LiquidCollision LiquidCollision(int liquidType) =>
-            LiquidLoader.liquidCollisions[Type, liquidType];
 
         public sealed override void SetupContent()
         {
@@ -78,7 +78,7 @@ namespace LiquidLib
                 throw new Exception("Fluids Limit Reached. (Max: 64)");
             LiquidLoader.AddLiquid(this);
             this.Mod.AddContent(new LiquidBucket(this));
-            LiquidLib.Instance.Logger.Info("Register new Liquid: " + this.Name + ", By: " + this.Mod.Name);
+            LiquidLib.Instance.Logger.Info("Register new Liquid: " + this.Name + ", By: " + this.Mod.Name + ", Type: " + Type);
         }
 
         /// <summary>  </summary>

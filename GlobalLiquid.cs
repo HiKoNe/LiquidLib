@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using Terraria;
+using Terraria.Audio;
 using Terraria.ModLoader;
 
 namespace LiquidLib
@@ -8,16 +9,22 @@ namespace LiquidLib
     public abstract class GlobalLiquid : ModType
     {
         /// <summary>  </summary>
-        public LiquidCollision LiquidCollision(int liquidType, int liquidType2) =>
-            LiquidLoader.liquidCollisions[liquidType, liquidType2];
-
-        /// <summary>  </summary>
         public virtual void WaterfallLength(int type, ref int waterfallLength)
         {
         }
 
         /// <summary>  </summary>
         public virtual void Opacity(int type, ref float opacity)
+        {
+        }
+
+        /// <summary>  </summary>
+        public virtual void WaveMaskStrength(int type, ref byte waveMaskStrength)
+        {
+        }
+
+        /// <summary>  </summary>
+        public virtual void ViscosityMask(int type, ref byte viscosityMask)
         {
         }
 
@@ -59,7 +66,7 @@ namespace LiquidLib
         }
 
         /// <summary>  </summary>
-        public virtual void ParticlesAndSound(int type, Entity entity, ref int dustCount, ref int dustType, ref int soundType, ref int soundStyle)
+        public virtual void ParticlesAndSound(int type, Entity entity, ref int dustCount, ref int dustType, ref LegacySoundStyle sound)
         {
         }
 

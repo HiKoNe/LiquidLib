@@ -2,11 +2,13 @@
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.GameContent.Liquid;
+using Terraria.ID;
 
 namespace LiquidLib
 {
@@ -16,7 +18,34 @@ namespace LiquidLib
         internal static readonly List<Entity> lastWetEntities= new();
         internal static readonly Dictionary<int, ModLiquid> liquids = new();
         internal static readonly List<GlobalLiquid> globalLiquids = new();
-        internal static LiquidCollisions liquidCollisions = new LiquidCollisions();
+
+        internal static readonly List<LiquidCollision> liquidCollisions = new()
+        {
+            new LiquidCollision(0, 1).SetTileType(TileID.Obsidian).SetSound(SoundID.LiquidsWaterLava),
+            new LiquidCollision(0, 2).SetTileType(TileID.HoneyBlock).SetSound(SoundID.LiquidsHoneyWater),
+            new LiquidCollision(1, 2).SetTileType(TileID.CrispyHoneyBlock).SetSound(SoundID.LiquidsHoneyLava),
+        };
+
+        public static LiquidCollision CollisionGet(int lqiuid, int lqiuid2)
+        {
+            LiquidCollision lc = null;
+            if (liquidCollisions.Any(l =>
+            {
+                bool @is = l.Is(lqiuid, lqiuid2, out var liquidCollision);
+                lc = liquidCollision;
+                return @is;
+            }))
+                return lc;
+
+            lc = new LiquidCollision(lqiuid, lqiuid2);
+            liquidCollisions.Add(lc);
+            return lc;
+        }
+
+        internal static bool CollisionContains(int lqiuid1, int lqiuid2)
+        {
+            return liquidCollisions.Any(l => l.Is(lqiuid1, lqiuid2, out _));
+        }
 
         internal static void OnUpdate()
         {
@@ -38,14 +67,27 @@ namespace LiquidLib
         /// <summary> Gets the ModLiquid instance with the given type. Returns null if no ModLiquid with the given type exists. </summary>
         public static ModLiquid GetLiquid(int type) => liquids.TryGetValue(type, out var modLiquid) ? modLiquid : null;
 
+        /// <summary> Gets the ModLiquid instance with the given name. Returns null if no ModLiquid with the given type exists. </summary>
+        public static ModLiquid GetLiquid(string name)
+        {
+            foreach (var modLiquid in liquids.Values)
+                if (modLiquid.Name == name)
+                    return modLiquid;
+            return null;
+        }
+
         public static void GetWaterfallLength(int type, ref int waterfallLength)
         {
             if (liquids.TryGetValue(type, out var modLiquid))
                 waterfallLength = modLiquid.WaterfallLength;
+            else if (type == 0)
+                waterfallLength = 10;
+            else if (type == 1)
+                waterfallLength = 3;
+            else if (type == 2)
+                waterfallLength = 2;
             else
-                waterfallLength = ((int[])typeof(LiquidRenderer)
-                    .GetField("WATERFALL_LENGTH", BindingFlags.NonPublic | BindingFlags.Static)
-                    .GetValue(null))[type];
+                waterfallLength = 5;
 
             foreach (var globalLiquid in globalLiquids)
                 globalLiquid.WaterfallLength(type, ref waterfallLength);
@@ -65,6 +107,38 @@ namespace LiquidLib
                 globalLiquid.Opacity(type, ref opacity);
 
             return opacity;
+        }
+
+        public static byte GetWaveMaskStrength(int type)
+        {
+            byte waveMaskStrength = 0;
+
+            if (liquids.TryGetValue(type, out var modLiquid))
+                waveMaskStrength = modLiquid.WaveMaskStrength;
+
+            foreach (var globalLiquid in globalLiquids)
+                globalLiquid.WaveMaskStrength(type, ref waveMaskStrength);
+
+            return waveMaskStrength;
+        }
+
+        public static byte GetViscosityMask(int type)
+        {
+            byte viscosityMask = 0;
+
+            if (liquids.TryGetValue(type, out var modLiquid))
+                viscosityMask = modLiquid.ViscosityMask;
+            else if (type == 0)
+                viscosityMask = 160;
+            else if (type == 1)
+                viscosityMask = 200;
+            else if (type == 2)
+                viscosityMask = 240;
+
+            foreach (var globalLiquid in globalLiquids)
+                globalLiquid.ViscosityMask(type, ref viscosityMask);
+
+            return viscosityMask;
         }
 
         public static Asset<Texture2D> GetLiquidTexture(int type, bool isWaterStyle)
@@ -144,32 +218,28 @@ namespace LiquidLib
             bool flag = false;
             int dustCount = -1;
             int dustType = -1;
-            int soundType = -1;
-            int soundStyle = -1;
+            LegacySoundStyle sound = null;
 
             if (type == 0)
             {
                 flag = true;
                 dustCount = 50;
                 dustType = Dust.dustWater();
-                soundType = 19;
-                soundStyle = 0;
+                sound = new LegacySoundStyle(19, 0);
             }
             else if (type == 1)
             {
                 flag = true;
                 dustCount = 20;
                 dustType = 35;
-                soundType = 19;
-                soundStyle = 1;
+                sound = new LegacySoundStyle(19, 1);
             }
             else if (type == 2)
             {
                 flag = true;
                 dustCount = 20;
                 dustType = 152;
-                soundType = 19;
-                soundStyle = 1;
+                sound = new LegacySoundStyle(19, 1);
             }
             else if (liquids.TryGetValue(type, out var modLiquid))
                 if (modLiquid.OnInLiquid(entity))
@@ -177,19 +247,18 @@ namespace LiquidLib
                     flag = true;
                     dustCount = modLiquid.DustCount;
                     dustType = modLiquid.DustType;
-                    soundType = modLiquid.SoundType;
-                    soundStyle = modLiquid.SoundStyle;
+                    sound = modLiquid.Sound;
                 }
 
             foreach (var globalLiquid in globalLiquids)
                 if (globalLiquid.OnInLiquid(type, entity))
                 {
                     flag = true;
-                    globalLiquid.ParticlesAndSound(type, entity, ref dustCount, ref dustType, ref soundType, ref soundStyle);
+                    globalLiquid.ParticlesAndSound(type, entity, ref dustCount, ref dustType, ref sound);
                 }
 
             if (flag)
-                ParticlesAndSound(dustCount, dustType, soundType, soundStyle, entity);
+                ParticlesAndSound(dustCount, dustType, sound, entity);
         }
 
         public static void OnOutLiquid(int type, Entity entity)
@@ -197,32 +266,28 @@ namespace LiquidLib
             bool flag = false;
             int dustCount = -1;
             int dustType = -1;
-            int soundType = -1;
-            int soundStyle = -1;
+            LegacySoundStyle sound = null;
 
             if (type == 0)
             {
                 flag = true;
                 dustCount = 50;
                 dustType = Dust.dustWater();
-                soundType = 19;
-                soundStyle = 0;
+                sound = new LegacySoundStyle(19, 0);
             }
             else if (type == 1)
             {
                 flag = true;
                 dustCount = 20;
                 dustType = 35;
-                soundType = 19;
-                soundStyle = 1;
+                sound = new LegacySoundStyle(19, 1);
             }
             else if (type == 2)
             {
                 flag = true;
                 dustCount = 20;
                 dustType = 152;
-                soundType = 19;
-                soundStyle = 1;
+                sound = new LegacySoundStyle(19, 1);
             }
             else if (liquids.TryGetValue(type, out var modLiquid))
                 if (modLiquid.OnOutLiquid(entity))
@@ -230,21 +295,20 @@ namespace LiquidLib
                     flag = true;
                     dustCount = modLiquid.DustCount;
                     dustType = modLiquid.DustType;
-                    soundType = modLiquid.SoundType;
-                    soundStyle = modLiquid.SoundStyle;
+                    sound = modLiquid.Sound;
                 }
 
             foreach (var globalLiquid in globalLiquids)
                 if (globalLiquid.OnOutLiquid(type, entity))
                 {
                     flag = true;
-                    globalLiquid.ParticlesAndSound(type, entity, ref dustCount, ref dustType, ref soundType, ref soundStyle);
+                    globalLiquid.ParticlesAndSound(type, entity, ref dustCount, ref dustType, ref sound);
                 }
 
             if (flag)
-                ParticlesAndSound(dustCount, dustType, soundType, soundStyle, entity);
+                ParticlesAndSound(dustCount, dustType, sound, entity);
         }
-        static void ParticlesAndSound(int dustCount, int dustType, int soundType, int soundStyle, Entity entity)
+        static void ParticlesAndSound(int dustCount, int dustType, LegacySoundStyle sound, Entity entity)
         {
             if (dustType >= 0)
                 for (int i = 0; i < dustCount; i++)
@@ -255,8 +319,8 @@ namespace LiquidLib
                     Main.dust[dust].alpha = 100;
                     Main.dust[dust].noGravity = true;
                 }
-            if (soundType >= 0 && soundStyle >= 0)
-                SoundEngine.PlaySound(soundType, (int)entity.position.X, (int)entity.position.Y, soundStyle, 1f, 0f);
+            if (sound != null)
+                SoundEngine.PlaySound(sound, entity.position);
         }
 
         public static bool OnUpdate(Liquid liquid)
@@ -322,7 +386,7 @@ namespace LiquidLib
         {
             liquids.Clear();
             globalLiquids.Clear();
-            liquidCollisions.Unload();
+            liquidCollisions.Clear();
         }
     }
 }
