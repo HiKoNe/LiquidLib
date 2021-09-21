@@ -141,16 +141,19 @@ namespace LiquidLib
             return viscosityMask;
         }
 
-        public static Asset<Texture2D> GetLiquidTexture(int type, bool isWaterStyle)
+        public static Asset<Texture2D> GetLiquidTexture(int type, int waterStyle = 0)
         {
             Asset<Texture2D> texture;
-            if (!isWaterStyle && liquids.TryGetValue(type, out var modLiquid))
+
+            if (liquids.TryGetValue(type, out var modLiquid))
                 texture = modLiquid.Textures[0];
+            else if (type == 0)
+                texture = LiquidRenderer.Instance._liquidTextures[type = waterStyle];
             else
-                texture = LiquidRenderer.Instance._liquidTextures[type];
+                texture = LiquidRenderer.Instance._liquidTextures[type == 2 ? 11 : type];
 
             foreach (var globalLiquid in globalLiquids)
-                globalLiquid.LiquidTexture(type, isWaterStyle, ref texture);
+                globalLiquid.LiquidTexture(type, waterStyle, ref texture);
 
             return texture;
         }
@@ -185,16 +188,20 @@ namespace LiquidLib
             return texture;
         }
 
-        public static Asset<Texture2D> GetWaterfallTexture(int type)
+        public static Asset<Texture2D> GetWaterfallTexture(int type, int style = 0)
         {
             Asset<Texture2D> texture;
 
             if (liquids.TryGetValue(type, out var modLiquid))
                 texture = modLiquid.Textures[3];
             else
+            {
+                if (type == 0)
+                    type = style;
                 texture = ((Asset<Texture2D>[])typeof(WaterfallManager)
                     .GetField("waterfallTexture", BindingFlags.NonPublic | BindingFlags.Instance)
                     .GetValue(Main.instance.waterfallManager))[type == 2 ? 14 : type];
+            }
 
             foreach (var globalLiquid in globalLiquids)
                 globalLiquid.WaterfallTexture(type, ref texture);

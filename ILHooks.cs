@@ -8,6 +8,7 @@ using System.Reflection;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
+using Terraria.GameContent;
 using Terraria.GameContent.Liquid;
 using Terraria.ID;
 
@@ -159,6 +160,21 @@ namespace LiquidLib
         {
             var c = new ILCursor(il);
 
+            if (c.TryGotoNext(i => i.OpCode == OpCodes.Callvirt && i.Operand.ToString().Contains("get_Value")))
+            {
+                c.Index -= 4;
+                c.RemoveRange(5);
+                c.Emit(OpCodes.Ldloc_3);
+                c.Emit(OpCodes.Ldfld, typeof(LiquidRenderer)
+                    .GetNestedType("LiquidDrawCache", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .GetField("Type", BindingFlags.Public | BindingFlags.Instance));
+                c.Emit(OpCodes.Ldarg_3);
+                c.EmitDelegate<Func<int, int, Texture2D>>((type, waterStyle) => LiquidLoader.GetLiquidTexture(type, waterStyle).Value);
+            }
+            else
+                errors.Add("LiquidRenderer_InternalDraw");
+
+            c.Index = 0;
             if (c.TryGotoNext(i => i.MatchLdsfld<LiquidRenderer>("DEFAULT_OPACITY")))
             {
                 c.Remove();
@@ -168,22 +184,9 @@ namespace LiquidLib
             }
             else
                 errors.Add("LiquidRenderer_InternalDraw");
-
-            if (c.TryGotoNext(i => i.MatchLdsfld<Main>("tileBatch")))
-            {
-                c.Index += 6;
-                c.Emit(OpCodes.Pop);
-                c.Emit(OpCodes.Ldloc_S, (byte)10);
-                c.Emit(OpCodes.Ldloc_3);
-                c.Emit(OpCodes.Ldfld, typeof(LiquidRenderer)
-                    .GetNestedType("LiquidDrawCache", BindingFlags.NonPublic | BindingFlags.Instance)
-                    .GetField("Type", BindingFlags.Public | BindingFlags.Instance));
-                c.EmitDelegate<Func<int, int, Texture2D>>((type, Type) => LiquidLoader.GetLiquidTexture(type, Type == 0).Value);
-            }
-            else
-                errors.Add("LiquidRenderer_InternalDraw");
         }
 
+        static bool isWaterStyle;
         static void TileDrawing_DrawTile_LiquidBehindTile(ILContext il)
         {
             var c = new ILCursor(il);
@@ -194,6 +197,9 @@ namespace LiquidLib
                 if (c.Index != 424)
                     continue;
                 error = false;
+
+                c.Emit(OpCodes.Ldloc_S, (byte)11);
+                c.EmitDelegate<Action<bool>>(flag6 => isWaterStyle = flag6);
 
                 var l = c.DefineLabel();
                 c.Emit(OpCodes.Ldloc_S, (byte)24);
@@ -264,12 +270,16 @@ namespace LiquidLib
                 int num = (int)tileCache.Slope;
                 if (!TileID.Sets.BlocksWaterDrawingBehindSelf[tileCache.type] || num == 0)
                 {
-                    Main.spriteBatch.Draw(LiquidLoader.GetFlowTexture(liquidType).Value, position, new Rectangle?(liquidSize), aColor, 0f, default, 1f, 0, 0f);
+                    Main.spriteBatch.Draw(
+                        isWaterStyle ? TextureAssets.Liquid[liquidType].Value : LiquidLoader.GetFlowTexture(liquidType).Value,
+                        position, new Rectangle?(liquidSize), aColor, 0f, default, 1f, 0, 0f);
                 }
                 else
                 {
                     liquidSize.X += 18 * (num - 1);
-                    Main.spriteBatch.Draw(LiquidLoader.GetSlopeTexture(liquidType).Value, position, new Rectangle?(liquidSize), aColor, 0f, Vector2.Zero, 1f, 0, 0f);
+                    Main.spriteBatch.Draw(
+                        isWaterStyle ? TextureAssets.LiquidSlope[liquidType].Value : LiquidLoader.GetSlopeTexture(liquidType).Value, 
+                        position, new Rectangle?(liquidSize), aColor, 0f, Vector2.Zero, 1f, 0, 0f);
                 }
             });
             c.Emit(OpCodes.Ret);
@@ -356,9 +366,10 @@ namespace LiquidLib
                     continue;
                 error = false;
 
-                c.EmitDelegate<Func<int, int>>(num12 =>
+                c.Emit(OpCodes.Ldarg_2);
+                c.EmitDelegate<Func<int, int, int>>((num12, Style) =>
                 {
-                    waterfallTexture = LiquidLoader.GetWaterfallTexture(num12).Value;
+                    waterfallTexture = LiquidLoader.GetWaterfallTexture(num12, Style).Value;
                     return num12 == 2 ? 14 : num12;
                 });
                 break;

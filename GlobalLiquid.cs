@@ -29,7 +29,7 @@ namespace LiquidLib
         }
 
         /// <summary>  </summary>
-        public virtual void LiquidTexture(int type, bool isWaterStyle, ref Asset<Texture2D> texture)
+        public virtual void LiquidTexture(int type, int waterStyle, ref Asset<Texture2D> texture)
         {
         }
 
