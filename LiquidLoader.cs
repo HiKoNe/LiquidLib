@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -188,7 +189,7 @@ namespace LiquidLib
             return texture;
         }
 
-        public static Asset<Texture2D> GetWaterfallTexture(int type, int style = 0)
+        public static Asset<Texture2D> GetWaterfallTexture(int type, int style)
         {
             Asset<Texture2D> texture;
 

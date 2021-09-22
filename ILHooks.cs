@@ -305,15 +305,34 @@ namespace LiquidLib
                 c.Emit(OpCodes.Ldloc_S, (byte)19);
                 c.Emit(OpCodes.Ldloc_S, (byte)18);
                 c.EmitDelegate<Func<Tile, Tile, Tile, int>>((tile2, tile4, tile3) => 
-                    Math.Max(tile2.LiquidType, Math.Max(tile4.LiquidType, tile3.LiquidType)));
+                    Math.Max(tile2.LiquidType, Math.Max(tile4.LiquidType, tile3.LiquidType)) + 100);
                 c.Emit<WaterfallManager.WaterfallData>(OpCodes.Stfld, "type");
                 break;
             }
             if (error)
                 errors.Add("WaterfallManager_FindWaterfalls");
+
+            //c.Index = 0;
+            //if (c.TryGotoNext(i => i.MatchLdcI4(11)))
+            //{
+            //    c.Remove();
+            //    c.Emit(OpCodes.Ldc_I4, 911);
+            //}
+            //else
+            //    errors.Add("WaterfallManager_FindWaterfalls");
+
+            //c.Index = 0;
+            //if (c.TryGotoNext(i => i.MatchLdcI4(22)))
+            //{
+            //    c.Remove();
+            //    c.Emit(OpCodes.Ldc_I4, 922);
+            //}
+            //else
+            //    errors.Add("WaterfallManager_FindWaterfalls");
         }
 
         static Texture2D waterfallTexture;
+        static bool isModLiquid;
         static void WaterfallManager_DrawWaterfall(ILContext il)
         {
             var c = new ILCursor(il);
@@ -328,11 +347,7 @@ namespace LiquidLib
 
                 c.Index++;
                 c.Emit(OpCodes.Pop);
-                c.Emit(OpCodes.Ldloc_S, (byte)12);
-                c.EmitDelegate<Func<int, bool>>(num12 =>
-                {
-                    return false;
-                });
+                c.EmitDelegate<Func<bool>>(() => !isModLiquid);
                 break;
             }
             if (error)
@@ -348,11 +363,7 @@ namespace LiquidLib
 
                 c.Index++;
                 c.Emit(OpCodes.Pop);
-                c.Emit(OpCodes.Ldloc_S, (byte)12);
-                c.EmitDelegate<Func<int, bool>>(num12 =>
-                {
-                    return false;
-                });
+                c.EmitDelegate<Func<bool>>(() => !isModLiquid);
                 break;
             }
             if (error)
@@ -369,7 +380,8 @@ namespace LiquidLib
                 c.Emit(OpCodes.Ldarg_2);
                 c.EmitDelegate<Func<int, int, int>>((num12, Style) =>
                 {
-                    waterfallTexture = LiquidLoader.GetWaterfallTexture(num12, Style).Value;
+                    isModLiquid = num12 >= 100;
+                    waterfallTexture = LiquidLoader.GetWaterfallTexture(isModLiquid ? num12 - 100 : num12, Style).Value;
                     return num12 == 2 ? 14 : num12;
                 });
                 break;
@@ -386,12 +398,44 @@ namespace LiquidLib
                     continue;
                 error = false;
 
-                c.Index++;
-                c.Emit(OpCodes.Pop);
+                c.Index -= 4;
+                c.RemoveRange(5);
                 c.EmitDelegate<Func<Texture2D>>(() => waterfallTexture);
             }
             if (error)
                 errors.Add("WaterfallManager_DrawWaterfall");
+
+            //error = true;
+            //c.Index = 0;
+            //int skip = 0;
+            //while (c.TryGotoNext(i => i.MatchLdcI4(11)))
+            //{
+            //    if (skip == 1)
+            //        continue;
+            //    error = false;
+
+            //    c.Remove();
+            //    c.Emit(OpCodes.Ldc_I4, 911);
+            //    skip++;
+            //}
+            //if (error)
+            //    errors.Add("WaterfallManager_DrawWaterfall");
+
+            //error = true;
+            //c.Index = 0;
+            //skip = 0;
+            //while (c.TryGotoNext(i => i.MatchLdcI4(22)))
+            //{
+            //    if (skip == 5)
+            //        continue;
+            //    error = false;
+
+            //    c.Remove();
+            //    c.Emit(OpCodes.Ldc_I4, 922);
+            //    skip++;
+            //}
+            //if (error)
+            //    errors.Add("WaterfallManager_DrawWaterfall");
         }
 
         static void Player_ItemCheck_UseBuckets(ILContext il)
