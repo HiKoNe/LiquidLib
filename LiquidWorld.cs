@@ -8,7 +8,7 @@ namespace LiquidLib
     {
         const string TAG_NAME = "LiquidTile";
 
-        public override TagCompound SaveWorldData()
+        public override void SaveWorldData(TagCompound tag)
         {
             var byteArray = new byte[Main.maxTilesX * Main.maxTilesY];
             int index = 0;
@@ -17,7 +17,7 @@ namespace LiquidLib
                 for (int j = 0; j < Main.maxTilesY; j++)
                     byteArray[index++] = (byte)Main.tile[i, j].LiquidType;
 
-            return new TagCompound { [TAG_NAME] = byteArray };
+            tag.Add(TAG_NAME, byteArray);
         }
 
         public override void LoadWorldData(TagCompound tag)

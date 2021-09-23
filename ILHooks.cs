@@ -254,6 +254,28 @@ namespace LiquidLib
             }
             if (error)
                 errors.Add("TileDrawing_DrawTile_LiquidBehindTile");
+
+            c.Index = c.Instrs.Count - 1;
+            if (c.TryGotoPrev(i => i.MatchLdarg(0)))
+            {
+                var l = c.DefineLabel();
+                c.Emit(OpCodes.Ldloc_S, (byte)18);
+                c.Emit(OpCodes.Brfalse, l);
+                c.Emit(OpCodes.Ret);
+                c.MarkLabel(l);
+            }
+            else
+                errors.Add("TileDrawing_DrawTile_LiquidBehindTile");
+
+            //c.Index = 0;
+            //if (c.TryGotoNext(i => i.MatchLdsfld<Main>("liquidAlpha")) && c.TryGotoNext(i => i.MatchLdsfld<Main>("liquidAlpha")))
+            //{
+            //    c.Index += 2;
+            //    c.Emit(OpCodes.Pop);
+            //    c.Emit(OpCodes.Ldc_I4_0);
+            //}
+            //else
+            //    errors.Add("TileDrawing_DrawTile_LiquidBehindTile");
         }
 
         static void TileDrawing_DrawPartialLiquid(ILContext il)
@@ -311,24 +333,6 @@ namespace LiquidLib
             }
             if (error)
                 errors.Add("WaterfallManager_FindWaterfalls");
-
-            //c.Index = 0;
-            //if (c.TryGotoNext(i => i.MatchLdcI4(11)))
-            //{
-            //    c.Remove();
-            //    c.Emit(OpCodes.Ldc_I4, 911);
-            //}
-            //else
-            //    errors.Add("WaterfallManager_FindWaterfalls");
-
-            //c.Index = 0;
-            //if (c.TryGotoNext(i => i.MatchLdcI4(22)))
-            //{
-            //    c.Remove();
-            //    c.Emit(OpCodes.Ldc_I4, 922);
-            //}
-            //else
-            //    errors.Add("WaterfallManager_FindWaterfalls");
         }
 
         static Texture2D waterfallTexture;
