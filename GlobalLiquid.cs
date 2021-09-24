@@ -8,87 +8,71 @@ namespace LiquidLib
 {
     public abstract class GlobalLiquid : ModType
     {
-        /// <summary>  </summary>
         public virtual void WaterfallLength(int type, ref int waterfallLength)
         {
         }
 
-        /// <summary>  </summary>
         public virtual void Opacity(int type, ref float opacity)
         {
         }
 
-        /// <summary>  </summary>
         public virtual void WaveMaskStrength(int type, ref byte waveMaskStrength)
         {
         }
 
-        /// <summary>  </summary>
         public virtual void ViscosityMask(int type, ref byte viscosityMask)
         {
         }
 
-        /// <summary>  </summary>
         public virtual void LiquidTexture(int type, int waterStyle, ref Asset<Texture2D> texture)
         {
         }
 
-        /// <summary>  </summary>
         public virtual void FlowTexture(int type, ref Asset<Texture2D> texture)
         {
         }
 
-        /// <summary>  </summary>
         public virtual void SlopeTexture(int type, ref Asset<Texture2D> texture)
         {
         }
 
-        /// <summary>  </summary>
         public virtual void WaterfallTexture(int type, ref Asset<Texture2D> texture)
         {
         }
 
-        /// <summary>  </summary>
         public virtual void OnCollision(int type, int i, int j, Entity entity)
         {
         }
 
-        /// <summary>  </summary>
         public virtual bool OnInLiquid(int type, Entity entity)
         {
             return true;
         }
 
-        /// <summary>  </summary>
         public virtual bool OnOutLiquid(int type, Entity entity)
         {
             return true;
         }
 
-        /// <summary>  </summary>
         public virtual void ParticlesAndSound(int type, Entity entity, ref int dustCount, ref int dustType, ref LegacySoundStyle sound)
         {
         }
 
-        /// <summary>  </summary>
         public virtual bool OnUpdate(Liquid liquid)
         {
             return true;
         }
 
-        /// <summary>  </summary>
         public virtual void Delay(int type, ref int delay)
         {
         }
 
-        /// <summary>  </summary>
         public virtual bool OnBucket(int type, Item bucket)
         {
             return true;
         }
 
-        /// <summary>  </summary>
-        public virtual void OnTilePlaceByLiquid(int liquidType, int liquidType2)
+        public virtual void OnTilePlaceByLiquid(int i, int j, int liquidType, int liquidType2)
         {
 
         }
@@ -99,7 +83,6 @@ namespace LiquidLib
         }
         public sealed override void SetupContent() => this.SetStaticDefaults();
 
-        /// <summary>  </summary>
         public override void SetStaticDefaults() => base.SetStaticDefaults();
     }
 }

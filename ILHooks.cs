@@ -641,7 +641,7 @@ namespace LiquidLib
                                     if (j < liquid.y)
                                         j++;
                                     WorldGen.PlaceTile(i, j, collision.tileType, true, true);
-                                    LiquidLoader.OnTilePlaceByLiquid(t.LiquidType, tile.LiquidType);
+                                    LiquidLoader.OnTilePlaceByLiquid(i, j, t.LiquidType, tile.LiquidType);
                                     WorldGen.SquareTileFrame(i, j, true);
                                     if (!WorldGen.gen)
                                         SoundEngine.PlaySound(collision.sound, new Vector2(i * 16 + 8, j * 16 + 8));

@@ -27,6 +27,8 @@ namespace LiquidLib
             new LiquidCollision(1, 2).SetTileType(TileID.CrispyHoneyBlock).SetSound(SoundID.LiquidsHoneyLava),
         };
 
+        public static int BucketsRecipeGroupID => LiquidLib.bucketsRecipeGroupID;
+
         public static LiquidCollision CollisionGet(int lqiuid, int lqiuid2)
         {
             LiquidCollision lc = null;
@@ -374,15 +376,15 @@ namespace LiquidLib
             return flag;
         }
 
-        public static void OnTilePlaceByLiquid(int type, int type2)
+        public static void OnTilePlaceByLiquid(int i, int j, int type, int type2)
         {
             if (liquids.TryGetValue(type, out var modLiquid))
-                modLiquid.OnTilePlaceByLiquid(type2);
+                modLiquid.OnTilePlaceByLiquid(i, j, type2);
             if (liquids.TryGetValue(type2, out modLiquid))
-                modLiquid.OnTilePlaceByLiquid(type);
+                modLiquid.OnTilePlaceByLiquid(i, j, type);
 
             foreach (var globalLiquid in globalLiquids)
-                globalLiquid.OnTilePlaceByLiquid(type, type2);
+                globalLiquid.OnTilePlaceByLiquid(i, j, type, type2);
         }
 
         internal static void AddLiquid(ModLiquid modLiquid)

@@ -64,10 +64,7 @@ namespace LiquidLib
             return false;
         }
 
-        public static void AddBucket(ModLiquid modLiquid)
-        {
-            var b = new LiquidBucket(modLiquid);
-            LiquidLib.BucketToLoad.Add(b);
-        }
+        public override void AddRecipes() =>
+            RecipeGroup.recipeGroups[LiquidLib.bucketsRecipeGroupID].ValidItems.Add(Type);
     }
 }

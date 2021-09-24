@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace LiquidLib
@@ -6,18 +7,13 @@ namespace LiquidLib
 	internal class LiquidLib : Mod
 	{
         public static LiquidLib Instance { get; private set; }
-
-        public static List<LiquidBucket> BucketToLoad = new();
+        public static int bucketsRecipeGroupID;
 
         public override void Load()
         {
             Instance = this;
             OnHooks.Load();
             ILHooks.Load();
-
-            foreach (var bucket in BucketToLoad)
-                AddContent(bucket);
-            BucketToLoad.Clear();
         }
 
         public override void Unload()
@@ -27,5 +23,9 @@ namespace LiquidLib
             ILHooks.Unload();
             LiquidLoader.Unload();
         }
+
+        public override void AddRecipeGroups() =>
+            bucketsRecipeGroupID = RecipeGroup.RegisterGroup("LiquidLib:Buckets",
+                new RecipeGroup(() => "Any Buckets", ItemID.WaterBucket, ItemID.LavaBucket, ItemID.HoneyBucket) { IconicItemId = ItemID.WaterBucket });
     }
 }
