@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using Terraria;
 using Terraria.Audio;
+using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.GameContent.Liquid;
 using Terraria.ID;
@@ -409,6 +410,19 @@ namespace LiquidLib
                 globalLiquid.Drown(type, ref drown);
 
             return drown;
+        }
+
+        public static void OnCatchFish(int type, Projectile projectile, ref FishingAttempt fisher)
+        {
+            if (liquids.TryGetValue(type, out var modLiquid))
+            {
+                fisher.rolledItemDrop = 0;
+                fisher.rolledEnemySpawn = 0;
+                modLiquid.OnCatchFish(projectile, ref fisher);
+            }
+
+            foreach (var globalLiquid in globalLiquids)
+                globalLiquid.OnCatchFish(type, projectile, ref fisher);
         }
 
         internal static void AddLiquid(ModLiquid modLiquid)

@@ -1,4 +1,5 @@
 ﻿using Terraria;
+using Terraria.Audio;
 using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -59,6 +60,7 @@ namespace LiquidLib
                     {
                         Item.stack--;
                         player.PutItemInInventoryFromItemUsage(ItemID.EmptyBucket, player.selectedItem);
+                        SoundEngine.PlaySound(19, (int)player.position.X, (int)player.position.Y);
                         return true;
                     }
                 }

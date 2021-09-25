@@ -3,6 +3,7 @@ using ReLogic.Content;
 using System;
 using Terraria;
 using Terraria.Audio;
+using Terraria.DataStructures;
 using Terraria.ModLoader;
 
 namespace LiquidLib
@@ -90,6 +91,10 @@ namespace LiquidLib
         }
 
         public virtual void OnTilePlaceByLiquid(int i, int j, int liquidType)
+        {
+        }
+
+        public virtual void OnCatchFish(Projectile projectile, ref FishingAttempt fisher)
         {
         }
     }

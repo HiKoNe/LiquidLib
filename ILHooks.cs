@@ -43,6 +43,9 @@ namespace LiquidLib
 
             IL.Terraria.Collision.DrownCollision += Collision_DrownCollision;
 
+            IL.Terraria.Projectile.GetFishingPondState += Projectile_GetFishingPondState;
+            IL.Terraria.Projectile.FishingCheck += Projectile_FishingCheck;
+
             if (errors.Count > 0)
                 foreach (var error in errors)
                     LiquidLib.Instance.Logger.Error("!!! IL Error: \"" + error + "\" !!!");
@@ -73,6 +76,9 @@ namespace LiquidLib
             IL.Terraria.GameContent.Tile_Entities.TELogicSensor.GetState -= TELogicSensor_GetState;
 
             IL.Terraria.Collision.DrownCollision -= Collision_DrownCollision;
+
+            IL.Terraria.Projectile.GetFishingPondState -= Projectile_GetFishingPondState;
+            IL.Terraria.Projectile.FishingCheck -= Projectile_FishingCheck;
         }
 
         static int waterfallLength;
@@ -730,6 +736,43 @@ namespace LiquidLib
             }
             else
                 errors.Add("Collision_DrownCollision");
+        }
+
+        static byte fishingLiquidType;
+        static void Projectile_GetFishingPondState(ILContext il)
+        {
+            var c = new ILCursor(il);
+
+            if (c.TryGotoNext(i => i.MatchLdloc(5)))
+            {
+                c.Emit(OpCodes.Ldloc_3);
+                c.Emit(OpCodes.Ldloc_S, (byte)4);
+                c.EmitDelegate<Action<int, int>>((i, j) =>
+                    fishingLiquidType = Math.Max(fishingLiquidType, (byte)Main.tile[i, j].LiquidType));
+            }
+            else
+                errors.Add("Projectile_GetFishingPondState");
+        }
+        delegate void RefAction<T>(ref T obj);
+        static void Projectile_FishingCheck(ILContext il)
+        {
+            var c = new ILCursor(il);
+
+            if (c.TryGotoNext(i => i.MatchStloc(3)))
+            {
+                c.Index++;
+                c.Emit(OpCodes.Ldloc_S, (byte)0);
+                c.Emit(OpCodes.Ldarg_0);
+                c.EmitDelegate<Func<FishingAttempt, Projectile, FishingAttempt>>((fishingAttempt, projectile) =>
+                {
+                    LiquidLoader.OnCatchFish(fishingLiquidType, projectile, ref fishingAttempt);
+                    fishingLiquidType = 0;
+                    return fishingAttempt;
+                });
+                c.Emit(OpCodes.Stloc_S, (byte)0);
+            }
+            else
+                errors.Add("Projectile_FishingCheck");
         }
     }
 }
