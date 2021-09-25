@@ -41,6 +41,8 @@ namespace LiquidLib
 
         public int Delay { get; set; } = 0;
 
+        public bool Drown { get; set; } = true;
+
         public sealed override void SetupContent()
         {
             Textures = new Asset<Texture2D>[4];

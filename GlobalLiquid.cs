@@ -67,6 +67,10 @@ namespace LiquidLib
         {
         }
 
+        public virtual void Drown(int type, ref bool drown)
+        {
+        }
+
         public virtual bool OnBucket(int type, Item bucket)
         {
             return true;

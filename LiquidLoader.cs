@@ -396,6 +396,21 @@ namespace LiquidLib
                 globalLiquid.OnTilePlaceByLiquid(i, j, type, type2);
         }
 
+        public static bool OnLiquidDrown(int type)
+        {
+            bool drown = true;
+            if (type == LiquidID.Lava)
+                drown = false;
+
+            if (liquids.TryGetValue(type, out var modLiquid))
+                drown = modLiquid.Drown;
+
+            foreach (var globalLiquid in globalLiquids)
+                globalLiquid.Drown(type, ref drown);
+
+            return drown;
+        }
+
         internal static void AddLiquid(ModLiquid modLiquid)
         {
             liquids.Add(modLiquid.Type, modLiquid);

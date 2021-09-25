@@ -41,6 +41,8 @@ namespace LiquidLib
 
             IL.Terraria.GameContent.Tile_Entities.TELogicSensor.GetState += TELogicSensor_GetState;
 
+            IL.Terraria.Collision.DrownCollision += Collision_DrownCollision;
+
             if (errors.Count > 0)
                 foreach (var error in errors)
                     LiquidLib.Instance.Logger.Error("!!! IL Error: \"" + error + "\" !!!");
@@ -69,6 +71,8 @@ namespace LiquidLib
             IL.Terraria.Liquid.Update -= Liquid_Update;
 
             IL.Terraria.GameContent.Tile_Entities.TELogicSensor.GetState -= TELogicSensor_GetState;
+
+            IL.Terraria.Collision.DrownCollision -= Collision_DrownCollision;
         }
 
         static int waterfallLength;
@@ -704,6 +708,28 @@ namespace LiquidLib
             }
             else
                 errors.Add("TELogicSensor_GetState");
+        }
+
+        static void Collision_DrownCollision(ILContext il)
+        {
+            var c = new ILCursor(il);
+
+            if (c.TryGotoNext(i => i.MatchCallvirt<Tile>("lava")))
+            {
+                c.Index--;
+                c.RemoveRange(3);
+            }
+            else
+                errors.Add("Collision_DrownCollision");
+
+            if (c.TryGotoNext(i => i.MatchLdloc(19)))
+            {
+                c.Index++;
+                c.Emit(OpCodes.Ldloc_S, (byte)15);
+                c.EmitDelegate<Func<bool, Tile, bool>>((result, tile) => result && LiquidLoader.OnLiquidDrown(tile.LiquidType));
+            }
+            else
+                errors.Add("Collision_DrownCollision");
         }
     }
 }
