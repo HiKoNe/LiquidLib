@@ -1,4 +1,5 @@
 ﻿using Terraria;
+using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -19,6 +20,7 @@ namespace LiquidLib
         {
             DisplayName.SetDefault(modLiquid.Name[0].ToString().ToUpper() + modLiquid.Name.Remove(0, 1).ToLower() + " Bucket");
             Tooltip.SetDefault($"Contains a small amount of {modLiquid.Name.ToLower()} \nCan be poured out");
+            CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
         }
 
         public override void SetDefaults()
@@ -66,5 +68,8 @@ namespace LiquidLib
 
         public override void AddRecipes() =>
             RecipeGroup.recipeGroups[LiquidLib.bucketsRecipeGroupID].ValidItems.Add(Type);
+
+        public override void ModifyResearchSorting(ref ContentSamples.CreativeHelper.ItemGroup itemGroup) =>
+            itemGroup = ContentSamples.CreativeHelper.ItemGroup.Material;
     }
 }

@@ -98,13 +98,11 @@ namespace LiquidLib
 
         public static float GetOpacity(int type)
         {
-            float opacity;
+            float opacity = 0.6f;
             if (liquids.TryGetValue(type, out var modLiquid))
                 opacity = modLiquid.Opacity;
-            else
-                opacity = ((float[])typeof(LiquidRenderer)
-                    .GetField("DEFAULT_OPACITY", BindingFlags.NonPublic | BindingFlags.Static)
-                    .GetValue(null))[type];
+            else if (type == 1 || type == 2)
+                opacity = 0.95f;
 
             foreach (var globalLiquid in globalLiquids)
                 globalLiquid.Opacity(type, ref opacity);
@@ -152,8 +150,10 @@ namespace LiquidLib
                 texture = modLiquid.Textures[0];
             else if (type == 0)
                 texture = LiquidRenderer.Instance._liquidTextures[type = waterStyle];
-            else
+            else if (type >= 0 && type < LiquidRenderer.Instance._liquidTextures.Length)
                 texture = LiquidRenderer.Instance._liquidTextures[type == 2 ? 11 : type];
+            else
+                texture = LiquidRenderer.Instance._liquidTextures[0];
 
             foreach (var globalLiquid in globalLiquids)
                 globalLiquid.LiquidTexture(type, waterStyle, ref texture);
@@ -167,8 +167,10 @@ namespace LiquidLib
 
             if (liquids.TryGetValue(type, out var modLiquid))
                 texture = modLiquid.Textures[2];
-            else
+            else if (type >= 0 && type < TextureAssets.Liquid.Length)
                 texture = TextureAssets.Liquid[type == 2 ? 11 : type];
+            else
+                texture = TextureAssets.Liquid[0];
 
             foreach (var globalLiquid in globalLiquids)
                 globalLiquid.FlowTexture(type, ref texture);
@@ -182,8 +184,10 @@ namespace LiquidLib
 
             if (liquids.TryGetValue(type, out var modLiquid))
                 texture = modLiquid.Textures[1];
-            else
+            else if (type >= 0 && type < TextureAssets.LiquidSlope.Length)
                 texture = TextureAssets.LiquidSlope[type == 2 ? 11 : type];
+            else
+                texture = TextureAssets.LiquidSlope[0];
 
             foreach (var globalLiquid in globalLiquids)
                 globalLiquid.SlopeTexture(type, ref texture);
@@ -201,9 +205,14 @@ namespace LiquidLib
             {
                 if (type == 0)
                     type = style;
-                texture = ((Asset<Texture2D>[])typeof(WaterfallManager)
+
+                var waterfallTextures = (Asset<Texture2D>[])typeof(WaterfallManager)
                     .GetField("waterfallTexture", BindingFlags.NonPublic | BindingFlags.Instance)
-                    .GetValue(Main.instance.waterfallManager))[type == 2 ? 14 : type];
+                    .GetValue(Main.instance.waterfallManager);
+                if (type >= 0 && type < waterfallTextures.Length)
+                    texture = waterfallTextures[type == 2 ? 14 : type];
+                else
+                    texture = waterfallTextures[0];
             }
 
             foreach (var globalLiquid in globalLiquids)

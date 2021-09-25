@@ -39,6 +39,8 @@ namespace LiquidLib
 
             IL.Terraria.Liquid.Update += Liquid_Update;
 
+            IL.Terraria.GameContent.Tile_Entities.TELogicSensor.GetState += TELogicSensor_GetState;
+
             if (errors.Count > 0)
                 foreach (var error in errors)
                     LiquidLib.Instance.Logger.Error("!!! IL Error: \"" + error + "\" !!!");
@@ -65,6 +67,8 @@ namespace LiquidLib
             IL.Terraria.Collision.WetCollision -= Collision_WetCollision;
 
             IL.Terraria.Liquid.Update -= Liquid_Update;
+
+            IL.Terraria.GameContent.Tile_Entities.TELogicSensor.GetState -= TELogicSensor_GetState;
         }
 
         static int waterfallLength;
@@ -685,6 +689,21 @@ namespace LiquidLib
             }
             if (error)
                 errors.Add("Liquid_Update");
+        }
+
+        static void TELogicSensor_GetState(ILContext il)
+        {
+            var c = new ILCursor(il);
+
+            if (c.TryGotoNext(i => i.MatchLdloc(15)))
+            {
+                c.Remove();
+                c.Emit(OpCodes.Ldloc_S, (byte)9);
+                c.Emit(OpCodes.Ldarg_2);
+                c.EmitDelegate<Func<Tile, int, bool>>((tile, type) => tile.LiquidType != 0 && type == 4);
+            }
+            else
+                errors.Add("TELogicSensor_GetState");
         }
     }
 }

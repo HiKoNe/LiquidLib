@@ -45,6 +45,7 @@ namespace LiquidLib
             On.Terraria.NetMessage.CompressTileBlock_Inner += NetMessage_CompressTileBlock_Inner;
             On.Terraria.NetMessage.DecompressTileBlock_Inner += NetMessage_DecompressTileBlock_Inner;
             OnInitialize += OnHooks_OnInitialize;
+            On.Terraria.Wiring.XferWater += Wiring_XferWater;
         }
 
         public static void Unload()
@@ -64,6 +65,7 @@ namespace LiquidLib
             On.Terraria.NetMessage.CompressTileBlock_Inner -= NetMessage_CompressTileBlock_Inner;
             On.Terraria.NetMessage.DecompressTileBlock_Inner -= NetMessage_DecompressTileBlock_Inner;
             OnInitialize -= OnHooks_OnInitialize;
+            On.Terraria.Wiring.XferWater -= Wiring_XferWater;
         }
 
         static byte Tile_liquidType(On.Terraria.Tile.orig_liquidType orig, Tile self) =>
@@ -177,6 +179,47 @@ namespace LiquidLib
                     var field_Left = type_UIHoverImage.GetField("Left", BindingFlags.Public | BindingFlags.Instance);
                     field_Left.SetValue(UIHoverImage, new StyleDimension { Percent = 1f, Pixels = baseOffset });
                     type_UIModItem.GetMethod("Append", BindingFlags.Public | BindingFlags.Instance).Invoke(self, new object[] { UIHoverImage });
+                }
+            }
+        }
+
+        static void Wiring_XferWater(On.Terraria.Wiring.orig_XferWater orig)
+        {
+            for (int i = 0; i < Wiring._numInPump; i++)
+            {
+                int inPumpX = Wiring._inPumpX[i];
+                int inPumpY = Wiring._inPumpY[i];
+                var inPumpTile = Main.tile[inPumpX, inPumpY];
+
+                if (inPumpTile.LiquidAmount > 0)
+                {
+
+                    for (int j = 0; j < Wiring._numOutPump; j++)
+                    {
+                        int outPumpX = Wiring._outPumpX[j];
+                        int outPumpY = Wiring._outPumpY[j];
+                        var outPumpTile = Main.tile[outPumpX, outPumpY];
+
+                        if (outPumpTile.LiquidAmount < 255 && (outPumpTile.LiquidType == inPumpTile.LiquidType || outPumpTile.LiquidAmount == 0))
+                        {
+                            if (outPumpTile.LiquidAmount == 0)
+                                outPumpTile.LiquidType = inPumpTile.LiquidType;
+
+                            int toTransfer = inPumpTile.LiquidAmount;
+                            if (toTransfer + outPumpTile.LiquidAmount > 255)
+                                toTransfer = 255 - outPumpTile.LiquidAmount;
+
+                            inPumpTile.LiquidAmount -= (byte)toTransfer;
+                            outPumpTile.LiquidAmount += (byte)toTransfer;
+
+                            WorldGen.SquareTileFrame(outPumpX, outPumpY, true);
+                            if (inPumpTile.LiquidAmount == 0)
+                            {
+                                WorldGen.SquareTileFrame(inPumpX, inPumpY, true);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }

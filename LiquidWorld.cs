@@ -27,7 +27,13 @@ namespace LiquidLib
 
             for (int i = 0; i < Main.maxTilesX; i++)
                 for (int j = 0; j < Main.maxTilesY; j++)
-                    Main.tile[i, j].LiquidType = byteArray[index++];
+                {
+                    var liquidType = byteArray[index++];
+                    if (liquidType < LiquidLoader.LiquidCount)
+                        Main.tile[i, j].LiquidType = liquidType;
+                    else
+                        Main.tile[i, j].LiquidType = liquidType;
+                }
         }
     }
 }
