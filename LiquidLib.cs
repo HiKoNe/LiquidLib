@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -8,6 +9,7 @@ namespace LiquidLib
 	{
         public static LiquidLib Instance { get; private set; }
         public static int bucketsRecipeGroupID;
+        public static ushort unloadedTileID;
 
         public override void Load()
         {

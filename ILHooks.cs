@@ -475,7 +475,7 @@ namespace LiquidLib
                     if (num == 0)
                         player.PutItemInInventoryFromItemUsage(206, player.selectedItem);
                     else
-                        player.PutItemInInventoryFromItemUsage(LiquidLoader.liquids[num].BucketType, player.selectedItem);
+                        player.PutItemInInventoryFromItemUsage(LiquidLoader.GetLiquid(num).BucketType, player.selectedItem);
                 });
                 break;
             }

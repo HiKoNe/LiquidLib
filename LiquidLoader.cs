@@ -11,22 +11,23 @@ using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.GameContent.Liquid;
 using Terraria.ID;
+using Terraria.ModLoader.IO;
 
 namespace LiquidLib
 {
     public static class LiquidLoader
     {
         internal static readonly List<(Entity entity, int liquidType)> wetEntities = new();
-        internal static readonly List<Entity> lastWetEntities= new();
-        internal static readonly Dictionary<int, ModLiquid> liquids = new();
+        internal static readonly List<Entity> lastWetEntities = new();
+        internal static readonly List<ModLiquid> liquids = new();
         internal static readonly List<GlobalLiquid> globalLiquids = new();
-
         internal static readonly List<LiquidCollision> liquidCollisions = new()
         {
             new LiquidCollision(0, 1).SetTileType(TileID.Obsidian).SetSound(SoundID.LiquidsWaterLava),
             new LiquidCollision(0, 2).SetTileType(TileID.HoneyBlock).SetSound(SoundID.LiquidsHoneyWater),
             new LiquidCollision(1, 2).SetTileType(TileID.CrispyHoneyBlock).SetSound(SoundID.LiquidsHoneyLava),
         };
+        internal static readonly Dictionary<int, string> unloadedLiquids = new();
 
         public static int BucketsRecipeGroupID => LiquidLib.bucketsRecipeGroupID;
 
@@ -46,10 +47,26 @@ namespace LiquidLib
             return lc;
         }
 
-        internal static bool CollisionContains(int lqiuid1, int lqiuid2)
-        {
-            return liquidCollisions.Any(l => l.Is(lqiuid1, lqiuid2, out _));
-        }
+        internal static bool CollisionContains(int lqiuid1, int lqiuid2) =>
+            liquidCollisions.Any(l => l.Is(lqiuid1, lqiuid2, out _));
+        internal static bool TryGetValue<T>(this IList<T> list, Func<T, bool> predict, out T value) =>
+            (value = list.FirstOrDefault(predict)) != null;
+        internal static bool TryGetValue(this IList<ModLiquid> list, int type, out ModLiquid modLiquid) =>
+            list.TryGetValue(i => i.Type == type, out modLiquid);
+        internal static bool TryGetValue(this IList<ModLiquid> list, string fullName, out ModLiquid modLiquid) =>
+            list.TryGetValue(i => i.FullName == fullName, out modLiquid);
+
+        public static int LiquidCount =>
+            liquids.Count + 3;
+
+        public static ModLiquid GetLiquid(int type) =>
+            liquids.TryGetValue(type, out var modLiquid) ? modLiquid : null;
+
+        public static ModLiquid GetLiquid(string fullName) =>
+            liquids.TryGetValue(fullName, out var modLiquid) ? modLiquid : null;
+
+        public static ModLiquid GetLiquid<T>() where T : ModLiquid =>
+            liquids.TryGetValue(i => i is T, out var modLiquid) ? modLiquid : null;
 
         internal static void OnUpdate()
         {
@@ -63,21 +80,6 @@ namespace LiquidLib
                 }
             }
             lastWetEntities.Clear();
-        }
-
-        /// <summary> Global liquid count. </summary>
-        public static int LiquidCount => liquids.Count + 3;
-        
-        /// <summary> Gets the ModLiquid instance with the given type. Returns null if no ModLiquid with the given type exists. </summary>
-        public static ModLiquid GetLiquid(int type) => liquids.TryGetValue(type, out var modLiquid) ? modLiquid : null;
-
-        /// <summary> Gets the ModLiquid instance with the given name. Returns null if no ModLiquid with the given type exists. </summary>
-        public static ModLiquid GetLiquid(string name)
-        {
-            foreach (var modLiquid in liquids.Values)
-                if (modLiquid.Name == name)
-                    return modLiquid;
-            return null;
         }
 
         public static void GetWaterfallLength(int type, ref int waterfallLength)
@@ -425,16 +427,53 @@ namespace LiquidLib
                 globalLiquid.OnCatchFish(type, projectile, ref fisher);
         }
 
+        internal static void ReloadTypes(TagCompound unloadedTag)
+        {
+            unloadedLiquids.Clear();
+            var unloaded = new Dictionary<string, object>(unloadedTag);
+            foreach ((var name, var type) in unloaded)
+                unloadedLiquids[(int)type] = name;
+
+            var reserveTypes = new HashSet<int>();
+            foreach ((var type, var name) in unloadedLiquids)
+            {
+                if (liquids.TryGetValue(name, out var modLiquid))
+                {
+                    modLiquid.ChangeType(type);
+                    reserveTypes.Add(type);
+                }
+            }
+
+            int freeType = 3;
+            foreach (var modLiquid in liquids)
+            {
+                if (reserveTypes.Contains(modLiquid.Type))
+                    continue;
+
+                while (reserveTypes.Contains(freeType))
+                    freeType++;
+
+                modLiquid.ChangeType(freeType);
+                freeType++;
+            }
+
+            //foreach (var modLiquid in liquids)
+            //    LiquidLib.Instance.Logger.Debug("modLiquid: " + modLiquid.FullName + " Type: " + modLiquid.Type);
+        }
+
         internal static void AddLiquid(ModLiquid modLiquid)
         {
-            liquids.Add(modLiquid.Type, modLiquid);
+            liquids.Add(modLiquid);
         }
 
         internal static void Unload()
         {
+            wetEntities.Clear();
+            lastWetEntities.Clear();
             liquids.Clear();
             globalLiquids.Clear();
             liquidCollisions.Clear();
+            unloadedLiquids.Clear();
         }
     }
 }

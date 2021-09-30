@@ -46,6 +46,7 @@ namespace LiquidLib
             On.Terraria.NetMessage.DecompressTileBlock_Inner += NetMessage_DecompressTileBlock_Inner;
             OnInitialize += OnHooks_OnInitialize;
             On.Terraria.Wiring.XferWater += Wiring_XferWater;
+            On.Terraria.IO.WorldFile.SaveWorld_Version2 += WorldFile_SaveWorld_Version2;
         }
 
         public static void Unload()
@@ -66,6 +67,7 @@ namespace LiquidLib
             On.Terraria.NetMessage.DecompressTileBlock_Inner -= NetMessage_DecompressTileBlock_Inner;
             OnInitialize -= OnHooks_OnInitialize;
             On.Terraria.Wiring.XferWater -= Wiring_XferWater;
+            On.Terraria.IO.WorldFile.SaveWorld_Version2 -= WorldFile_SaveWorld_Version2;
         }
 
         static byte Tile_liquidType(On.Terraria.Tile.orig_liquidType orig, Tile self) =>
@@ -222,6 +224,12 @@ namespace LiquidLib
                     }
                 }
             }
+        }
+
+        static void WorldFile_SaveWorld_Version2(On.Terraria.IO.WorldFile.orig_SaveWorld_Version2 orig, BinaryWriter writer)
+        {
+            LiquidWorld.PreSaveWorld();
+            orig(writer);
         }
 
         //            HL

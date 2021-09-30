@@ -11,6 +11,7 @@ namespace LiquidLib
     public abstract class ModLiquid : ModType
     {
         public int Type { get; private set; }
+        internal void ChangeType(int type) => Type = type;
 
         public int BucketType { get; internal set; }
 
@@ -61,7 +62,7 @@ namespace LiquidLib
                 throw new Exception("Fluids Limit Reached. (Max: 64)");
             LiquidLoader.AddLiquid(this);
             this.Mod.AddContent(new LiquidBucket(this));
-            LiquidLib.Instance.Logger.Info("Register new Liquid: " + this.Name + ", By: " + this.Mod.Name + ", Type: " + Type);
+            LiquidLib.Instance.Logger.Info("Register new Liquid: " + this.FullName);
         }
 
         public override void SetStaticDefaults() => base.SetStaticDefaults();
