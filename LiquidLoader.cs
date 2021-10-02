@@ -358,6 +358,15 @@ namespace LiquidLib
             return flag;
         }
 
+        public static void OnRandomUpdate(int i, int j, int type)
+        {
+            if (liquids.TryGetValue(type, out var modLiquid))
+                modLiquid.OnRandomUpdate(i, j);
+
+            foreach (var globalLiquid in globalLiquids)
+                globalLiquid.OnRandomUpdate(type, i, j);
+        }
+
         public static int GetDelay(int type)
         {
             int delay = 0;
@@ -456,14 +465,6 @@ namespace LiquidLib
                 modLiquid.ChangeType(freeType);
                 freeType++;
             }
-
-            //foreach (var modLiquid in liquids)
-            //    LiquidLib.Instance.Logger.Debug("modLiquid: " + modLiquid.FullName + " Type: " + modLiquid.Type);
-        }
-
-        internal static void AddLiquid(ModLiquid modLiquid)
-        {
-            liquids.Add(modLiquid);
         }
 
         internal static void Unload()

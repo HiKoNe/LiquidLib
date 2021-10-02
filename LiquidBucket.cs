@@ -20,7 +20,7 @@ namespace LiquidLib
         public override void SetStaticDefaults()
         {
             DisplayName.SetDefault(modLiquid.Name[0].ToString().ToUpper() + modLiquid.Name.Remove(0, 1).ToLower() + " Bucket");
-            Tooltip.SetDefault($"Contains a small amount of {modLiquid.Name.ToLower()} \nCan be poured out");
+            Tooltip.SetDefault($"Contains a small amount of {modLiquid.Name.ToLower()}" + (modLiquid.AddOnlyBucket ? "\nCannot be poured out" : "\nCan be poured out"));
             CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
         }
 
@@ -45,6 +45,9 @@ namespace LiquidLib
                 player.cursorItemIconID = Type;
             }
         }
+
+        public override bool CanUseItem(Player player) =>
+            !modLiquid.AddOnlyBucket;
 
         public override bool? UseItem(Player player)
         {

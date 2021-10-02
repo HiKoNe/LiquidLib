@@ -64,6 +64,10 @@ namespace LiquidLib
             return true;
         }
 
+        public virtual void OnRandomUpdate(int type, int i, int j)
+        {
+        }
+
         public virtual void Delay(int type, ref int delay)
         {
         }

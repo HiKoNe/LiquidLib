@@ -27,6 +27,8 @@ namespace LiquidLib
 
         public abstract string WaterfallTexture { get; }
 
+        public abstract bool AddOnlyBucket { get; }
+
         public int WaterfallLength { get; set; } = 5;
 
         public float Opacity { get; set; } = 0.0f;
@@ -57,12 +59,15 @@ namespace LiquidLib
 
         protected sealed override void Register()
         {
-            Type = LiquidLoader.LiquidCount;
-            if (Type > 63)
-                throw new Exception("Fluids Limit Reached. (Max: 64)");
-            LiquidLoader.AddLiquid(this);
+            if (!AddOnlyBucket)
+            {
+                Type = LiquidLoader.LiquidCount;
+                if (Type > 63)
+                    throw new Exception("Fluids Limit Reached. (Max: 64)");
+                LiquidLoader.liquids.Add(this);
+            }
             this.Mod.AddContent(new LiquidBucket(this));
-            LiquidLib.Instance.Logger.Info("Register new Liquid: " + this.FullName);
+            LiquidLib.Instance.Logger.Info("Register new Liquid: " + this.FullName + ", OnlyBucket: " + AddOnlyBucket);
         }
 
         public override void SetStaticDefaults() => base.SetStaticDefaults();
@@ -84,6 +89,10 @@ namespace LiquidLib
         public virtual bool OnUpdate(Liquid liquid)
         {
             return true;
+        }
+
+        public virtual void OnRandomUpdate(int i, int j)
+        {
         }
 
         public virtual bool OnBucket(Item bucket)

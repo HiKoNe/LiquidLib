@@ -15,7 +15,6 @@ namespace LiquidLib
 {
     internal static class OnHooks
     {
-
         static event hook_OnInitialize OnInitialize
         {
             add => HookEndpointManager.Add(typeof(Mod).Assembly
@@ -27,6 +26,16 @@ namespace LiquidLib
         }
         delegate void hook_OnInitialize(orig_OnInitialize orig, object self);
         delegate void orig_OnInitialize(object self);
+
+        static event hook_RandomUpdate RandomUpdate
+        {
+            add => HookEndpointManager.Add(typeof(TileLoader)
+                    .GetMethod(nameof(TileLoader.RandomUpdate), BindingFlags.Public | BindingFlags.Static), value);
+            remove => HookEndpointManager.Remove(typeof(TileLoader)
+                    .GetMethod(nameof(TileLoader.RandomUpdate), BindingFlags.Public | BindingFlags.Static), value);
+        }
+        delegate void hook_RandomUpdate(orig_RandomUpdate orig, int i, int j, int type);
+        delegate void orig_RandomUpdate(int i, int j, int type);
 
         public static void Load()
         {
@@ -47,6 +56,7 @@ namespace LiquidLib
             OnInitialize += OnHooks_OnInitialize;
             On.Terraria.Wiring.XferWater += Wiring_XferWater;
             On.Terraria.IO.WorldFile.SaveWorld_Version2 += WorldFile_SaveWorld_Version2;
+            RandomUpdate += OnHooks_RandomUpdate;
         }
 
         public static void Unload()
@@ -68,6 +78,7 @@ namespace LiquidLib
             OnInitialize -= OnHooks_OnInitialize;
             On.Terraria.Wiring.XferWater -= Wiring_XferWater;
             On.Terraria.IO.WorldFile.SaveWorld_Version2 -= WorldFile_SaveWorld_Version2;
+            RandomUpdate -= OnHooks_RandomUpdate;
         }
 
         static byte Tile_liquidType(On.Terraria.Tile.orig_liquidType orig, Tile self) =>
@@ -228,8 +239,15 @@ namespace LiquidLib
 
         static void WorldFile_SaveWorld_Version2(On.Terraria.IO.WorldFile.orig_SaveWorld_Version2 orig, BinaryWriter writer)
         {
-            LiquidWorld.PreSaveWorld();
+            //LiquidWorld.PreSaveWorld();
             orig(writer);
+        }
+
+        static void OnHooks_RandomUpdate(orig_RandomUpdate orig, int i, int j, int type)
+        {
+            if (Main.tile[i, j].LiquidAmount > 0)
+                LiquidLoader.OnRandomUpdate(i, j, Main.tile[i, j].LiquidType);
+            orig(i, j, type);
         }
 
         //            HL
